@@ -127,4 +127,4 @@ class CubeElement extends HTMLElement {
     }
 }
 
-customElements.define('cube.js', CubeElement);
+customElements.define('rotating-cube', CubeElement);
