@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rotating Cube</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="cube.js"></script>
+</head>
+<style>
+    body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+        font-family: 'Nunito', sans-serif;
+        background-color: #f0f0f0;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    span {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+    }
+
+    code {
+        background-color: #e0e0e0;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-family: 'Kode Mono', monospace;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.darkmode {
+        background-color: #181824;
+        color: #f0f0f0;
+    }
+
+    body.darkmode code {
+        background-color: #232336;
+        color: #f0f0f0;
+    }
+    .darkmode-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #fff;
+        color: #222;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 18px;
+        cursor: pointer;
+        font-size: 1em;
+        box-shadow: 0 2px 8px #0001;
+        transition: background 0.3s, color 0.3s;
+    }
+    body.darkmode .darkmode-toggle {
+        background: #232336;
+        color: #f0f0f0;
+    }
+</style>
+<body>
+<button class="darkmode-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+<h1>This is a Demo of the ExoByte Core Cube.js script</h1>
+<span>Open the browser console and Type <code>`cube.info()`</code> for more.</span>
+<rotating-cube top="50%" left="50%" color="#d000ff88" edge-color="#000" auto-start draggable></rotating-cube>
+</body>
+<script>
+    function toggleDarkMode() {
+        document.body.classList.toggle('darkmode');
+        const btn = document.querySelector('.darkmode-toggle');
+        if (document.body.classList.contains('darkmode')) {
+            btn.textContent = '☀️ Light Mode';
+        } else {
+            btn.textContent = '🌙 Dark Mode';
+        }
+    }
+</script>
+</html>

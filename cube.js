@@ -1,3 +1,19 @@
+/**
+ * ExoByte Core Cube Animation
+ * A simple rotating cube animation with drag and color change features.
+ *
+ * @version 1.0.2
+ *
+ * Usage:
+ * ```HTML
+ * <rotating-cube top="100px" left="100px" color="#00aaff" auto-start></rotating-cube>
+ * ```
+ *
+ * <em>Note: attributes are not required</em>
+ *
+ * @author ExoByte Core Team
+ * @license MIT
+ */
 class CubeElement extends HTMLElement {
     constructor() {
         super();
@@ -5,11 +21,13 @@ class CubeElement extends HTMLElement {
         // Create shadow root and base elements
         const shadow = this.attachShadow({mode: 'open'});
 
+        const placement = document.querySelectorAll('rotating-cube').length;
+
         const wrapper = document.createElement('div');
         wrapper.className = 'cube-container';
         wrapper.style.position = 'absolute';
-        wrapper.style.top = this.getAttribute('top') || '100px';
-        wrapper.style.left = this.getAttribute('left') || '100px';
+        wrapper.style.top = this.getAttribute('top') || `${100 * placement + 5}px`;
+        wrapper.style.left = this.getAttribute('left') || `${100 * placement + 5}px`;
         wrapper.style.width = '100px';
         wrapper.style.height = '100px';
         wrapper.style.perspective = '800px';
@@ -21,6 +39,7 @@ class CubeElement extends HTMLElement {
         for (let i = 1; i <= 6; i++) {
             const face = document.createElement('span');
             face.className = `face face${i}`;
+            face.style.background = this.getAttribute('color') || 'rgba(0, 150, 255, 0.8)';
             cube.appendChild(face);
         }
 
@@ -28,14 +47,18 @@ class CubeElement extends HTMLElement {
 
         const style = document.createElement('style');
         style.textContent = `
+      .cube-container {
+        transform: translate(-50%, -50%)
+      }        
       .cube {
         width: 100px;
         height: 100px;
-        position: relative;
         transform-style: preserve-3d;
+        display: none;
       }
 
       .cube.animate {
+        display: block;
         animation: spin 5s linear infinite;
       }
 
@@ -68,6 +91,10 @@ class CubeElement extends HTMLElement {
         let dragOffsetX = 0, dragOffsetY = 0;
 
         wrapper.addEventListener('mousedown', e => {
+            if (!this.isDraggable) {
+                e.preventDefault();
+                return;
+            }
             isMoving = true;
             const rect = wrapper.getBoundingClientRect();
             dragOffsetX = e.clientX - rect.left;
@@ -82,8 +109,11 @@ class CubeElement extends HTMLElement {
 
         document.addEventListener('mousemove', e => {
             if (!isMoving) return;
-            wrapper.style.left = `${e.clientX - dragOffsetX}px`;
-            wrapper.style.top = `${e.clientY - dragOffsetY}px`;
+            // Account for the -50% translation
+            const width = wrapper.offsetWidth;
+            const height = wrapper.offsetHeight;
+            wrapper.style.left = `${e.clientX - dragOffsetX + width / 2}px`;
+            wrapper.style.top = `${e.clientY - dragOffsetY + height / 2}px`;
         });
 
         // Double-click for random color
@@ -92,8 +122,8 @@ class CubeElement extends HTMLElement {
             cube.querySelectorAll('.face').forEach(f => f.style.background = randColor);
         });
 
-        // Global API
-        window.cube = {
+        // Create API for this cube instance
+        this.api = {
             start: () => {
                 cube.classList.add('animate');
                 return "Cube animation started";
@@ -103,7 +133,7 @@ class CubeElement extends HTMLElement {
                 return "Cube animation stopped";
             },
             color: (colorOrGradient) => {
-                const isGradient = /^(linear|radial)-gradient\\(.+\\)$/i.test(colorOrGradient);
+                const isGradient = /^(linear|radial)-gradient\(.+\)$/i.test(colorOrGradient);
                 const isHex = /^#([0-9A-Fa-f]{3,8})$/.test(colorOrGradient);
                 if (!isGradient && !isHex) {
                     return "Invalid color format. Use #RRGGBB or CSS gradient.";
@@ -112,7 +142,6 @@ class CubeElement extends HTMLElement {
                 return `Cube faces color changed to ${colorOrGradient}`;
             },
             info: () => (
-                "This is the ExoByte Core Cube Animation.\n\n" +
                 "Controls:\n" +
                 "- cube.start() → Start spinning\n" +
                 "- cube.stop() → Stop spinning\n" +
@@ -122,8 +151,122 @@ class CubeElement extends HTMLElement {
             )
         };
 
-        // Autostart
-        window.cube.start();
+        // Expose cube API to the global window object
+        if (!window.cube) {
+            window.cube = {
+                info: () => {
+                    console.log(
+                        "%cWelcome to ExoByte Core Cube Animation!\n\n" +
+                        "%cA simple js cube animation with drag and color change features.\n\n" +
+                        "Commands:\n" +
+                        "- cube.info(): displays this message\n" +
+                        "- cube.start(): starts all the cube animations\n" +
+                        "- cube.stop(): stops all the cube animations\n" +
+                        "- cube.color('#hex' or 'linear-gradient(...)'): changes the color of all cubes\n" +
+                        "- cube.cubes(): returns the number of cubes on the page\n\n" +
+                        "Each cube can be accessed separately by using %c`cubes[index].api`",
+                        "font-style:italic;font-weight:800;color:#d000ff;font-size:20px;",
+                        "font-style:normal;",
+                        "font-style:italic;background-color: rgba(165, 165, 165, 0.25);"
+                    );
+                },
+                cubes: () => {
+                    return `Total cubes available: ${document.querySelectorAll('rotating-cube').length}\n` +
+                        "Use `cubes[index]` to access a specific cube instance.";
+                },
+                start: () => {
+                    const cubes = document.querySelectorAll('rotating-cube');
+                    cubes.forEach(c => c.api.start());
+                    return "All cube animations started.";
+                },
+                stop: () => {
+                    const cubes = document.querySelectorAll('rotating-cube');
+                    cubes.forEach(c => c.api.stop());
+                    return "All cube animations stopped.";
+                },
+                color: (colorOrGradient) => {
+                    const cubes = document.querySelectorAll('rotating-cube');
+                    cubes.forEach(c => c.api.color(colorOrGradient));
+                    return `All cube faces color changed to ${colorOrGradient}`;
+                }
+            };
+
+            // Expose all cubes as window.cubes for direct access
+            Object.defineProperty(window, 'cubes', {
+                get: () => Array.from(document.querySelectorAll('rotating-cube'))
+            });
+
+            const cubes = document.querySelectorAll('rotating-cube');
+            for (let i = 1; i < cubes.length; i++) {
+                console.log(`[${i}] Cube instance created.`);
+            }
+            console.log(`Use "cube.info()" to see available commands.`);
+        }
+    }
+
+    /**
+     * Called when the element is added to the document.
+     * Starts animation if 'auto-start' attribute is present.
+     */
+    connectedCallback() {
+        this.initialize();
+    }
+
+    /**
+     * Called when the element is removed from the document.
+     * Stops animation if 'auto-start' attribute was present.
+     */
+    disconnectedCallback() {
+        this.api.stop();
+    }
+
+    /**
+     * Called when the element is updated.
+     * Updates the position and color of the cube.
+     */
+    attributeChangedCallback(name, oldValue, newValue) {
+        switch (name) {
+            case 'top':
+                this.shadowRoot.querySelector('.cube-container').style.top = newValue || '100px';
+                break;
+            case 'left':
+                this.shadowRoot.querySelector('.cube-container').style.left = newValue || '100px';
+                break;
+            case 'color':
+                const faces = this.shadowRoot.querySelectorAll('.face');
+                faces.forEach(face => face.style.background = newValue || 'rgba(0, 150, 255, 0.8)');
+                break;
+            case 'draggable':
+                this.isDraggable = this.hasAttribute('draggable');
+                break;
+            default:
+                console.warn(`Attribute ${name} not recognized.`);
+        }
+    }
+
+    /**
+     * Initializes the cube element.
+     *
+     * Sets the initial position and color based on attributes.
+     * Starts the animation if 'auto-start' attribute is present.
+     *
+     */
+    initialize() {
+        if (this.hasAttribute('auto-start')) {
+            this.api.start();
+        }
+        this.shadowRoot.querySelector('.cube-container').style.top = this.getAttribute("top") || '100px';
+        this.shadowRoot.querySelector('.cube-container').style.left = this.getAttribute("left") || '100px';
+        this.shadowRoot.querySelectorAll('.face').forEach(face => {
+            face.style.background = this.getAttribute("color") || '#d000ff88';
+            face.style.borderColor = this.getAttribute("edge-color") || '#fff';
+        });
+        this.isDraggable = this.hasAttribute('draggable');
+        if (this.hasAttribute('no-edges')) {
+            this.shadowRoot.querySelectorAll('.face').forEach(face => {
+                face.style.border = 'none';
+            });
+        }
     }
 }
 
