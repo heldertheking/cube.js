@@ -102,12 +102,17 @@ class CubeElement extends HTMLElement {
             document.body.style.userSelect = 'none';
         });
 
-        document.addEventListener('mouseup', () => {
+        wrapper.addEventListener('mouseup', () => {
             isMoving = false;
             document.body.style.userSelect = '';
         });
 
-        document.addEventListener('mousemove', e => {
+        wrapper.addEventListener('mouseleave', () => {
+            isMoving = false;
+            document.body.style.userSelect = '';
+        });
+
+        wrapper.addEventListener('mousemove', e => {
             if (!isMoving) return;
             // Account for the -50% translation
             const width = wrapper.offsetWidth;
